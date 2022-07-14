@@ -1,0 +1,150 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+#install.packages("data.table")
+library(data.table)
+#install.packages("stargazer")
+library(stargazer)
+#install.packages("stargazer")
+library(stargazer)
+#install.packages("ggplot2")
+library(ggplot2)
+#install.packages("ggthemes")
+library(ggthemes)
+#install.packages("tidyverse")
+library(tidyverse)
+#install.packages("pwr")
+library(pwr)
+#install.packages("plm")
+library(plm)
+#install.packages("AER")
+library(AER)
+#install.packages("MatchIt")
+library(MatchIt)
+
+#clear environment
+rm(list=ls());gc()
+
+
+# SET YOUR WORKING DIRECTORY HERE
+setwd("/Users/olasebik/Downloads")
+
+#load dataset
+MyData = fread(input='data.csv', verbose = F)
+MyData <- MyData[-c(1, 2), ]
+```
+
+```{r}
+#load dataset
+MyData = fread(input='data.csv', verbose = F)
+MyData <- MyData[-c(1, 2), ]
+#View(MyData)
+```
+
+```{r}
+#clean data
+MyData$treatment<-with(MyData,ifelse(Q7==2|Q8==2|Q9==2|Q10==2|Q11==2|Q12==2,1,0))
+names(MyData)[names(MyData) == 'Q13'] <- 'willingness'
+MyData <- MyData[!(MyData$willingness == "" | is.na(MyData$willingness)), ]
+#View(MyData)
+```
+
+```{r}
+#Analyze the willingness of different age group
+MyData$age[MyData$Q2 == 1] <- "0-17 years old"
+MyData$age[MyData$Q2 == 2] <- "18-25 years old"
+MyData$age[MyData$Q2 == 3] <- "26-40 years old"
+MyData$age[MyData$Q2 == 4] <- "40+ years old"
+
+#Have an overview at the percentage of age
+proportions <- table(MyData$age)/length(MyData$age)
+percentages <- proportions*100
+View(percentages)
+
+#Run OLS regression
+MyData$age <- as.factor(MyData$age)
+ols1<-lm(willingness~treatment*age,data=MyData)
+stargazer(ols1,
+          se=list(
+            sqrt(diag(vcovHC(ols1,
+                             method="arellano",
+                             type="HC1")))),
+          title=
+            "OLS Regression: The Effect of Interaction of Adding a Reading Time and age on Willingness to Read the Whole Article",
+          type="text",
+          column.labels = c("plain"),
+          model.numbers = F)
+
+```
+
+
+```{r}
+#Analyze the willingness of different gender
+MyData$gender[MyData$Q1 == 1] <- "Male"
+MyData$gender[MyData$Q1 == 2] <- "Female"
+MyData$gender[MyData$Q1 == 3] <- "Other"
+MyData$gender[MyData$Q1 == 4] <- "Prefer not to answer"
+
+#Have an overview at the percentage of age
+proportions2 <- table(MyData$gender)/length(MyData$gender)
+percentages2 <- proportions2*100
+View(percentages2)
+
+#Run OLS regression
+MyData$gender <- as.factor(MyData$gender)
+ols2<-lm(willingness~treatment*gender,data=MyData)
+stargazer(ols2,
+          se=list(
+            sqrt(diag(vcovHC(ols1,
+                             method="arellano",
+                             type="HC1")))),
+          title=
+            "OLS Regression: The Effect of Interaction of Adding a Reading Time and gender on Willingness to Read the Whole Article",
+          type="text",
+          column.labels = c("plain"),
+          model.numbers = F)
+```
+
+
+```{r}
+#3. Analyze the willingness of different reading frequency
+MyData$frequency[MyData$Q5 == 1] <- "Less than 1 hour"
+MyData$frequency[MyData$Q5 == 2] <- "1-2 hours"
+MyData$frequency[MyData$Q5 == 3] <- "2-4 hours"
+MyData$frequency[MyData$Q5 == 4] <- "4-6 hours"
+MyData$frequency[MyData$Q5 == 5] <- "More than 6 hours"
+
+#Have an overview at the percentage of frequency
+proportions3 <- table(MyData$frequency)/length(MyData$frequency)
+percentages3 <- proportions3*100
+View(percentages3)
+```
+
+
+```{r}
+#Run OLS regression
+MyData$frequency <- as.factor(MyData$frequency)
+ols3<-lm(willingness~treatment*frequency*age,data=MyData)
+stargazer(ols3,
+          se=list(
+            sqrt(diag(vcovHC(ols1,
+                             method="arellano",
+                             type="HC1")))),
+          title=
+            "OLS Regression: The Effect of Interaction of Adding a Reading Time, Age and Reading Frequency on Willingness to Read the Whole Article",
+          type="text",
+          column.labels = c("plain"),
+          model.numbers = F)
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
